@@ -1,0 +1,113 @@
+%又第三关内容与题意得，2人一起行进造成的4倍消耗太大
+%故最优解一定是其中一人按照第3关的决策方案进行，另一人在开局休息一天第四天到达
+%这样一来两人可以达到最优解，下面先进行3天到达的那个人的策略生成
+clc;clear;
+%前10次天气题上已经给出。
+W1=[1,2,1,1,1,1,2,2,2,2];
+disp('其中1代表晴朗，2代表高温')
+%下面根据前述内容求解第5关的最优解：
+TotM=10000;
+water=0;
+food=0;
+wateruse=[3,9];%按照晴朗高温的顺序构造的水消耗矩阵
+fooduse=[4,9];%按照晴朗高温的顺序构造的食物消耗矩阵
+%由题意和第一关运算结果可得，最优解存在于直达终点和挖矿5天之中
+%记为方案1与方案2，下面依次计算它们并比较输出最优解
+%方案1，直达终点，没有沙暴，3天抵达
+water1=water;
+food1=food;
+for j=1:3
+    if W1(j)==1
+        %晴朗天气
+        water1=water1+2*wateruse(1);
+        food1=food1+2*fooduse(1);
+    else
+        %高温天气
+        water1=water1+2*wateruse(2);
+        food1=food1+2*fooduse(2);
+    end
+end
+TotM1=TotM-water1*5-food1*10;
+disp(['方案一共花费3天抵达终点，消耗水件数为',num2str(water1),...
+    '消耗的食物数为',num2str(food1),'剩余的钱数为',num2str(TotM1)])
+%由于题设条件改变，故计算新的全策略消耗利润表
+disp('打印挖矿收益为200第五关全策略消耗利润表：')
+TotM=10000;
+Totw=1200;
+water=0;
+food=0;
+ww=3;
+fw=2;
+%先计算休息消耗
+%晴天
+watersun=3;
+foodsun=4;
+restsunw=watersun*ww+foodsun*fw;%晴天休息消耗负重
+restsunm=watersun*5+foodsun*10;
+%晴天休息资金花费
+%高温
+waterhight=9;
+foodhight=9;
+resthightw=waterhight*ww+foodhight*fw;%高温休息消耗负重
+resthightm=waterhight*5+foodhight*10;
+%高温休息资金花费
+usew=[restsunw,resthightw];
+usem=[restsunm,resthightm];
+W=[1,2];%1晴朗2高温
+%下面编写输出内容
+disp('物资全部来自于起点：')
+for i=1:2
+            if W(i)==1
+                fprintf('晴朗情况下休息消耗的负重为%d,资金消耗为%d\n',usew(1),usem(1))
+                fprintf('晴朗情况下移动消耗的负重为%d,资金消耗为%d\n',2*usew(1),2*usem(1))
+                fprintf('晴朗情况下挖矿消耗的负重为%d,资金消耗为%d\n',3*usew(1),3*usem(1))
+                fprintf('挖矿的净利润是%d\n',200-3*usem(1))
+            else
+                fprintf('高温情况下休息消耗的负重为%d,资金消耗为%d\n',usew(2),usem(2))
+                fprintf('高温情况下移动消耗的负重为%d,资金消耗为%d\n',2*usew(2),2*usem(2))
+                fprintf('高温情况下挖矿消耗的负重为%d,资金消耗为%d\n',3*usew(2),3*usem(2))
+                fprintf('挖矿的净利润是%d\n',200-3*usem(2))
+            end
+end
+%由上述全策略消耗表可知，在该情况下，晴朗挖矿利润是35，高温是-205
+%极端情况，就算全是晴天，挖矿5天赚175资金，多走两天抵达终点消耗220资金
+%175<220，是赔本买卖。也就是说，此情况下挖矿没有意义，故不计算方案2
+disp('方案1是最优解，也是第一个人的行动策略:')
+disp('前三天天气为:')
+disp(W1(1:3))
+disp(['第一个人花费3天直达终点最优，剩余资金',num2str(TotM1)])
+%由于天气已知，故没有保守策略
+%下面计算第二个人的资金剩余，即第一天休息，然后行进三天
+water2=water;
+food2=food;
+for k=1:4
+    if k==1
+        %第一天休息了
+    if W1(k)==1
+        %晴朗天气
+        water2=water2+wateruse(1);
+        food2=food2+fooduse(1);
+    else
+        %高温天气
+        water2=water2+wateruse(2);
+        food2=food2+fooduse(2);
+    end
+    else
+        %2-4天在移动
+    if W1(k)==1
+        %晴朗天气
+        water2=water2+2*wateruse(1);
+        food2=food2+2*fooduse(1);
+    else
+        %高温天气
+        water2=water2+2*wateruse(2);
+        food2=food2+2*fooduse(2);
+    end
+    end
+end
+TotM2=TotM-water2*5-food2*10;
+disp('略改方案1，加入第一天休息是第二个人的最优解:')
+disp('前四天天气为:')
+disp(W1(1:4))
+disp(['第二个人花费4天直达终点最优，剩余资金',num2str(TotM2)])
+%由于天气已知，故没有保守策略

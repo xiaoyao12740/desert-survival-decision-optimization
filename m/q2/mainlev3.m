@@ -1,0 +1,116 @@
+%根据前两问天气情况，拟造第三关天气序列生成函数
+%在30天中，共有6天沙暴，9天晴朗，15天高温
+%如果不含有沙暴天气，那么晴朗概率是37.5%，高温是62.5%
+%设置合理误差为10%，即认为抽取得到结果反应实际概率在真实概率上下10%
+%接下来进行十天的非沙暴情况抽取
+clc;clear;
+yorn1=0;%合理性检验标志
+w1=0;%抽奖不合理次数的累计
+W1=[];%用于记录抽奖结果
+S1=zeros(1,2);
+while yorn1~=1
+    for i=1:10
+        r(i)=rand;
+        if r(i)<0.375
+            %晴朗天气
+            W1=[W1,1];
+            S1(1)=S1(1)+1;
+        else
+            %高温天气
+            W1=[W1,2];
+            S1(2)=S1(2)+1;
+        end
+    end
+        if S1(1)/10<0.275||S1(1)/10>0.475
+        %认为抽奖结果不合理,返回for函数重新抽取
+        disp('出现一次抽取结果不合理,下面将自动进行下一次抽取')
+        w1=w1+1;
+        W1=[];
+        S1=zeros(1,2);
+        yorn1=0;
+        else
+        %抽奖结果合理，输出W1
+        disp(['共计失败',num2str(w1),'次后得到第三关10天天气合理抽取结果：'])
+        disp(W1)
+        yorn1=1;
+        end
+end
+%前10次天气已经抽取完毕。
+disp('其中1代表晴朗，2代表高温')
+%下面根据前述内容求解第三关的最优解：
+TotM=10000;
+water=0;
+food=0;
+wateruse=[3,9];%按照晴朗高温的顺序构造的水消耗矩阵
+fooduse=[4,9];%按照晴朗高温的顺序构造的食物消耗矩阵
+%由题意和第一关运算结果可得，最优解存在于直达终点和挖矿5天之中
+%记为方案1与方案2，下面依次计算它们并比较输出最优解
+%方案1，直达终点，没有沙暴，3天抵达
+water1=water;
+food1=food;
+for j=1:3
+    if W1(j)==1
+        %晴朗天气
+        water1=water1+2*wateruse(1);
+        food1=food1+2*fooduse(1);
+    else
+        %高温天气
+        water1=water1+2*wateruse(2);
+        food1=food1+2*fooduse(2);
+    end
+end
+TotM1=TotM-water1*5-food1*10;
+disp(['方案一共花费3天抵达终点，消耗水件数为',num2str(water1),...
+    '消耗的食物数为',num2str(food1),'剩余的钱数为',num2str(TotM1)])
+%由于题设条件改变，故计算新的全策略消耗利润表
+disp('打印挖矿收益为200且无村庄购买无沙暴的全策略消耗利润表：')
+TotM=10000;
+Totw=1200;
+water=0;
+food=0;
+ww=3;
+fw=2;
+%先计算休息消耗
+%晴天
+watersun=3;
+foodsun=4;
+restsunw=watersun*ww+foodsun*fw;%晴天休息消耗负重
+restsunm=watersun*5+foodsun*10;
+%晴天休息资金花费
+%高温
+waterhight=9;
+foodhight=9;
+resthightw=waterhight*ww+foodhight*fw;%高温休息消耗负重
+resthightm=waterhight*5+foodhight*10;
+%高温休息资金花费
+usew=[restsunw,resthightw];
+usem=[restsunm,resthightm];
+W=[1,2];%1晴朗2高温
+%下面编写输出内容
+disp('物资全部来自于起点：')
+for i=1:2
+            if W(i)==1
+                fprintf('晴朗情况下休息消耗的负重为%d,资金消耗为%d\n',usew(1),usem(1))
+                fprintf('晴朗情况下移动消耗的负重为%d,资金消耗为%d\n',2*usew(1),2*usem(1))
+                fprintf('晴朗情况下挖矿消耗的负重为%d,资金消耗为%d\n',3*usew(1),3*usem(1))
+                fprintf('挖矿的净利润是%d\n',200-3*usem(1))
+            else
+                fprintf('高温情况下休息消耗的负重为%d,资金消耗为%d\n',usew(2),usem(2))
+                fprintf('高温情况下移动消耗的负重为%d,资金消耗为%d\n',2*usew(2),2*usem(2))
+                fprintf('高温情况下挖矿消耗的负重为%d,资金消耗为%d\n',3*usew(2),3*usem(2))
+                fprintf('挖矿的净利润是%d\n',200-3*usem(2))
+            end
+end
+%由上述全策略消耗表可知，在该情况下，晴朗挖矿利润是35，高温是-205
+%极端情况，就算全是晴天，挖矿5天赚175资金，多走两天抵达终点消耗220资金
+%175<220，是赔本买卖。也就是说，此情况下挖矿没有意义，故不计算方案2
+disp('方案1是最优解:')
+disp('前三天天气为:')
+disp(W1(1:3))
+disp(['时，直达终点最优，剩余资金',num2str(TotM1)])
+%反复运行该代码，得出资金为9190-9670(全高温到全晴朗)
+%故保守策略为买三天高温移动物资，如有剩余，则折价回退资金
+waterbuy=3*2*9;
+foodbuy=3*2*9;
+zhesun=(waterbuy-water1)*5/2+(foodbuy-food1)*10/2;
+disp(['在天气完全未知的情况下保守策略的剩余资金为',num2str(TotM1-zhesun)])
